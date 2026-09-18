@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String            @id @default(uuid())
+  email       String            @unique
+  timezone    String            @default("Asia/Seoul")
+  createdAt   DateTime          @default(now())
+  preference  UserPreference?
+  checkins    DailyCheckin[]
+  sleepLogs   SleepLog[]
+  sessionLogs SessionLog[]
+  insights    WeeklyInsight[]
+}
+
+model UserPreference {
+  userId                 String   @id
+  user                   User     @relation(fields: [userId], references: [id])
+  goalsJson              String   @default("[]")
+  defaultDurationMinutes Int      @default(10)
+  audioPreference        String   @default("sound")
+  reminderOptIn          Boolean  @default(false)
+}
+
+model DailyCheckin {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id])
+  mood              String
+  stressLevel       Int
+  energyLevel       Int
+  sleepiness        Int
+  goal              String
+  availableMinutes  Int
+  note              String?
+  createdAt         DateTime @default(now())
+}
+
+model SleepLog {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  sleepDate       String
+  bedAt           DateTime
+  wakeAt          DateTime
+  latencyMinutes  Int
+  awakenings      Int
+  quality         Int
+  createdAt       DateTime @default(now())
+}
+
+model Routine {
+  id               String       @id @default(uuid())
+  ownerType        String
+  title            String
+  goal             String
+  durationMinutes  Int
+  stepsJson        String
+  safetyStatus     String
+  createdAt        DateTime     @default(now())
+  sessionLogs      SessionLog[]
+}
+
+model SessionLog {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  routineId   String
+  routine     Routine   @relation(fields: [routineId], references: [id])
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  beforeJson  String
+  afterJson   String?
+}
+
+model WeeklyInsight {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  weekStart   String
+  metricsJson String
+  insightJson String
+  createdAt   DateTime @default(now())
+}
